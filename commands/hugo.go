@@ -303,6 +303,7 @@ func (c *commandeer) fullBuild() error {
 	}
 	buildSitesFunc := func() error {
 		if err := c.buildSites(); err != nil {
+			c.logger.ERROR.Println(err, "Error building site")
 			return errors.Wrap(err, "Error building site")
 		}
 		return nil

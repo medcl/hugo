@@ -58,7 +58,8 @@ var frontMatterTests = []lexerTest{
 	{"HTML Document", `  <html>  `, []Item{nti(tText, "  "), tstHtmlStart, nti(tText, "html>  "), tstEOF}},
 	{"HTML Document with shortcode", `<html>{{< sc1 >}}</html>`, []Item{tstHtmlStart, nti(tText, "html>"), tstLeftNoMD, tstSC1, tstRightNoMD, nti(tText, "</html>"), tstEOF}},
 	{"No front matter", "\nSome text.\n", []Item{tstSomeText, tstEOF}},
-	{"YAML front matter", "---\nfoo: \"bar\"\n---\n\nSome text.\n", []Item{tstFrontMatterYAML, tstSomeText, tstEOF}},
+	{"YAML front matter1", "---\nfoo: \"bar\"\n---\n\nSome text.\n", []Item{tstFrontMatterYAML, tstSomeText, tstEOF}},
+	{"YAML front matter2", "---\nfoo: \"bar\"\n...\n\nSome text.\n", []Item{tstFrontMatterYAML, tstSomeText, tstEOF}},
 	{"YAML empty front matter", "---\n---\n\nSome text.\n", []Item{nti(TypeFrontMatterYAML, ""), tstSomeText, tstEOF}},
 	{"YAML commented out front matter", "<!--\n---\nfoo: \"bar\"\n---\n-->\nSome text.\n", []Item{nti(TypeIgnore, "<!--\n"), tstFrontMatterYAML, nti(TypeIgnore, "-->"), tstSomeText, tstEOF}},
 	{"YAML commented out front matter, no end", "<!--\n---\nfoo: \"bar\"\n---\nSome text.\n", []Item{nti(TypeIgnore, "<!--\n"), tstFrontMatterYAML, nti(tError, "starting HTML comment with no end")}},
@@ -80,6 +81,7 @@ func TestFrontMatter(t *testing.T) {
 	t.Parallel()
 	for i, test := range frontMatterTests {
 		items := collect([]byte(test.input), false, lexIntroSection)
+		fmt.Println(items)
 		if !equal(items, test.items) {
 			got := crLfReplacer.Replace(fmt.Sprint(items))
 			expected := crLfReplacer.Replace(fmt.Sprint(test.items))

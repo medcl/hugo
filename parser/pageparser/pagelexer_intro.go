@@ -30,7 +30,7 @@ LOOP:
 		switch {
 		case r == '+':
 			return l.lexFrontMatterSection(TypeFrontMatterTOML, r, "TOML", delimTOML)
-		case r == '-':
+		case r == '-'||r =='.':
 			return l.lexFrontMatterSection(TypeFrontMatterYAML, r, "YAML", delimYAML)
 		case r == '{':
 			return lexFrontMatterJSON
@@ -164,8 +164,17 @@ LOOP:
 // Handle YAML or TOML front matter.
 func (l *pageLexer) lexFrontMatterSection(tp ItemType, delimr rune, name string, delim []byte) stateFunc {
 
+	//fix for elastic's reporting format which front closing with  '...'
+	tryYaml:=false
+	if delimr == '-'{
+		tryYaml=true
+	}
+
+	delimr1:='.'
+	delim1:=[]byte("...")
+
 	for i := 0; i < 2; i++ {
-		if r := l.next(); r != delimr {
+		if r := l.next(); !(r == delimr||(r == delimr1&&tryYaml)) {
 			return l.errorf("invalid %s delimiter", name)
 		}
 	}
@@ -186,7 +195,7 @@ func (l *pageLexer) lexFrontMatterSection(tp ItemType, delimr rune, name string,
 		}
 
 		if wasEndOfLine || isEndOfLine(r) {
-			if l.hasPrefix(delim) {
+			if l.hasPrefix(delim)|| (l.hasPrefix(delim1)&&tryYaml){
 				l.emit(tp)
 				l.pos += 3
 				l.consumeCRLF()
